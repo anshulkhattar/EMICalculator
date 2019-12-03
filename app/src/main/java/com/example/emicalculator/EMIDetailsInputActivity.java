@@ -3,17 +3,20 @@ package com.example.emicalculator;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.DecimalFormat;
+import java.util.Locale;
 
 public class EMIDetailsInputActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
@@ -21,7 +24,10 @@ public class EMIDetailsInputActivity extends AppCompatActivity implements Adapte
     private Button calculateButton,resetButton;
     private Spinner tenureSpinner;
     private TextView emiTextView;
+    ImageView sound;
     private Integer pos;
+    TextToSpeech textToSpeech;
+    int sound_flag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +40,35 @@ public class EMIDetailsInputActivity extends AppCompatActivity implements Adapte
         emiTextView=(TextView)findViewById(R.id.emiTextView);
         calculateButton=(Button)findViewById(R.id.calculateButton);
         resetButton=(Button)findViewById(R.id.resetButton);
+        sound = findViewById(R.id.sound);
+        sound_flag=1;
+
+        sound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (sound_flag==2){
+                    sound.setImageResource(R.drawable.sound_on);
+                    sound_flag=1;
+                }
+                else {
+                    sound_flag=2;
+                    sound.setImageResource(R.drawable.mute);
+                }
+
+            }
+        });
+
+        textToSpeech=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    textToSpeech.setLanguage(Locale.getDefault());
+                }
+                else{
+                    Toast.makeText(EMIDetailsInputActivity.this,"error",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         Integer tenures[]={3,6,9,12,24,48,36};
 
@@ -80,6 +115,10 @@ public class EMIDetailsInputActivity extends AppCompatActivity implements Adapte
         DecimalFormat df = new DecimalFormat(".###");
 
         emiTextView.setText("Rs. "+df.format(emi)+"\nper month");
+        if (sound_flag!=2){
+            textToSpeech.speak(("rupees"+df.format(emi)+"per month"),TextToSpeech.QUEUE_FLUSH,null);
+
+        }
         emiTextView.setVisibility(View.VISIBLE);
     }
 
